@@ -8,3 +8,8 @@ Dependencies needed:
 - numpy
 - wavio
 - sqlite3
+- pyaudio
+
+To use python MusicDatabase.py
+
+Executable to be compiled soon.
