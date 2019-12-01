@@ -12,4 +12,4 @@ Dependencies needed:
 
 To use python MusicDatabase.py
 
-Executable to be compiled soon.
+Executable to be compiled soon. Only tested in Windows 10.
