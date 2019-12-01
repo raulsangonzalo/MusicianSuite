@@ -13,7 +13,7 @@ def createTables():
                 project TEXT,
                 variation_another_song TEXT,
                 timestamp TIMESTAMP,
-                style TEXT[] ,
+                style TEXT,
                 duration int
                 )''')
 
@@ -39,6 +39,7 @@ def dropTables():
     c.execute('''DROP TABLE recorded_ideas''')
     conn.commit()
     conn.close()
+
 def queries(sqlstr, variables=None):  #to handle queries neatly
     conn = sqlite3.connect("test.db") #TODO <<read from registry to get the existing db, if not prompt to select
     c = conn.cursor()
@@ -53,10 +54,14 @@ def queries(sqlstr, variables=None):  #to handle queries neatly
     return items_available
 
 #dropTables()
-
-#x = 0
-#variables = []
-#while x < 1000:
+#createTables()
+#x = 2000
+##variables = []
+#while x < 2010:
+#    text = """INSERT OR REPLACE into songs 
+#        (title) values
+#        (%s)""" % x
+#    queries(text)
 #    text = """INSERT OR REPLACE into recorded_ideas 
 #        (title) values
 #        (%s)""" % x

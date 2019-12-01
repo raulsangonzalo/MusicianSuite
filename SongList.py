@@ -1,237 +1,375 @@
 from PyQt5.QtWidgets import QDialog, QListWidget, QListWidgetItem, QDialog, QApplication,\
      QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QMessageBox, QStackedWidget, QLineEdit,\
      QWidget, QComboBox, QGridLayout, QCheckBox, QGroupBox, QTextEdit, QPushButton, QTimeEdit,\
-     QDateTimeEdit, QCompleter
+     QDateTimeEdit, QCompleter, QSlider, QFileDialog
 from PyQt5.QtGui import QFont, QPixmap, QIcon
-from PyQt5.QtCore import QTime
+from PyQt5.QtCore import QTime, Qt, QDir, QUrl
+from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
 from datetime import datetime, timedelta
-from custom import queries
+from sqliteHandler import queries
 import numpy as np
+import os
 from functools import partial
 
 class SongList(QWidget):
     def __init__(self, parent=None):
         super(SongList, self).__init__(parent)
+
+        resourcesPath = os.getcwd()
+        resourcesPath = os.path.join(resourcesPath, "resources")
+
+        self.PLAY_ICON = QIcon(QPixmap(os.path.join(resourcesPath, "play.png")))
+        self.PAUSE_ICON = QIcon(QPixmap(os.path.join(resourcesPath, "pause.png")))
+        self.STOP_ICON = QIcon(QPixmap(os.path.join(resourcesPath, "stop.png")))
+
+        self.setupMediaPlayer()
         self.setupUi()
     
+    def setupMediaPlayer(self):
+        self.mediaPlayer = QMediaPlayer()
+
+        self.mediaPlayer.setNotifyInterval(1)
+        self.mediaPlayer.stateChanged.connect(self.mediaStateChanged)
+        self.mediaPlayer.positionChanged.connect(self.positionChanged)
+        self.mediaPlayer.durationChanged.connect(self.durationChanged)
+
     def setupUi(self):
-        self.setWindowTitle("Raul list of songs")
-        self.mainLayout = QHBoxLayout(self)
+        self.setWindowTitle("List of songs")
+        mainLayout = QHBoxLayout(self)
 
+        verticalListLayout = QVBoxLayout()
         self.songsListWidget = QListWidget()
-        
-        listArray = queries("""SELECT title, status, style, duration, description,
-        location, project, variation_another_song, timestamp from music.songs""")
-        for item in listArray:
-            
-            title = item[0]
-            status = item[1]
-            timestamp = item[8]
-            timestamp = timestamp.strftime("%d/%m/%Y")
+        verticalListLayout.addWidget(self.songsListWidget)
 
+        miniHorizontalLayout = QHBoxLayout()
+        locatorLine = QLineEdit()
+        locatorLine.setPlaceholderText("Locator")
+        locatorBox = QComboBox()
+        items = ["Title", "Status", "Description", "Style", "All"]
+        locatorBox.addItems(items)
+        locatorBox.setCurrentIndex(len(items)-1)
 
-            text = "%s %s %s" % (title, status, timestamp)
-            qItem = QListWidgetItem(text)
-            self.songsListWidget.addItem(qItem)
-            print(title)
+        miniHorizontalLayout.addWidget(locatorLine)
+        miniHorizontalLayout.addWidget(locatorBox)
+
+        locatorLine.textChanged.connect(lambda:self.populateList(locatorLine.text(), locatorBox.currentText()))
+
+        verticalListLayout.addLayout(miniHorizontalLayout)
+
+        self.mainForm = QGroupBox()
+        self.mainForm.setTitle("Details")
+
+        mainLayout.addLayout(verticalListLayout)
+        mainLayout.addWidget(self.mainForm)
+
+        self.populateList()
+        self.mainFormSetupUi()
+        #self.show()
 
         self.songsListWidget.currentRowChanged.connect(self.changePage)
-        self.mainLayout.addWidget(self.songsListWidget)
-        self.mainLayout.addWidget(self.stackedWidget(listArray))
 
-    def stackedWidget(self, listArray):
-        self.listStackedWidget = QStackedWidget()
+    def mainFormSetupUi(self):
+        
+        """title, status style, duration, descriptin, location, project,
+        variation_another_song, timestamp"""
 
-        x = 0
-        arrayNew = [None, None, None, None, None, None, None, None, None] #only need one for validation
-        listArray.append(arrayNew)
-        qItem = QListWidgetItem("Add new song...")
-        self.songsListWidget.addItem(qItem)
-        for item in listArray:
-            #items
-            title = item[0]
-            status = item[1]
-            styles = item[2]
-            duration = item[3]
-            description = item[4]
-            location = item[5]
-            project = item[6]
-            variation_another_song = item[7]
-            timestamp = item[8]
+        mainLayout = QVBoxLayout(self.mainForm)
+
+        #Horizontal Layout 1
+        horizontalLayout1 = QHBoxLayout()
+
+        titleLabel = QLabel("Song name:")
+        self.titleEdit = QLineEdit()
+
+        #self.titleEdit.editingFinished.connect(partial(self.checkIdea, self.titleEdit))
+        #self.titleEdit.textChanged.connect(partial(self.validateIdea, self.titleEdit))
+
+        horizontalLayout1.addWidget(titleLabel)
+        horizontalLayout1.addWidget(self.titleEdit)
+
+        
+        #Horizontal Layout 2
+        horizontalLayout2 = QHBoxLayout()
+        statusLabel = QLabel("Status:")
+        self.statusBox = QComboBox()
+        
+        dateLabel = QLabel("Date:")
+        self.dateEdit = QDateTimeEdit()
+        self.dateEdit.setCalendarPopup(True)
+
+        horizontalLayout2.addWidget(statusLabel)
+        horizontalLayout2.addWidget(self.statusBox)
+        horizontalLayout2.addStretch(1)
+        horizontalLayout2.addWidget(dateLabel)
+        horizontalLayout2.addWidget(self.dateEdit)
+
+
+        #Style Groupbox, widgets added automatically
+        self.styleGroupBox = QGroupBox()
+        self.styleGroupBox.setTitle("Style:")
+        self.styleLayout = QGridLayout(self.styleGroupBox)
+        
+        horizontalLayout3 = QHBoxLayout()
+        durationLabel = QLabel("Duration:")
+        self.durationLine = QTimeEdit()
+        self.durationLine.setDisplayFormat("mm:ss")
+        
+        projectLabel = QLabel("Project")
+
+        self.projectComboBox = QComboBox()
+        self.projectComboBox.setEditable(True)
+        
+        horizontalLayout3.addWidget(durationLabel)    
+        horizontalLayout3.addWidget(self.durationLine)
+        horizontalLayout3.addWidget(projectLabel)
+        horizontalLayout3.addWidget(self.projectComboBox)
+
+        horizontalLayout4 = QHBoxLayout()
+        descriptionLabel = QLabel("Description:")
+        variationLabel = QLabel("Variation from another song: ")
+        self.variationLine = QLineEdit()
+        
+        horizontalLayout4.addWidget(descriptionLabel)
+        horizontalLayout4.addStretch(1)
+        horizontalLayout4.addWidget(variationLabel)
+        horizontalLayout4.addWidget(self.variationLine)
+
+        self.descriptionTextEdit = QTextEdit()
+
+        horizontalLayout5 = QHBoxLayout()
+        locationLabel = QLabel("Location:")
+        self.locationLine = QLineEdit()
+        self.locationButton = QPushButton("...")
+        self.locationButton.clicked.connect(self.locateFile)
+
+        
+        horizontalLayout5.addWidget(locationLabel)
+        horizontalLayout5.addWidget(self.locationLine)
+        horizontalLayout5.addWidget(self.locationButton)
+
+        horizontalLayout6 = QHBoxLayout()
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.sliderReleased.connect(self.playSlider)
+        self.slider.setStyleSheet("QSlider::handle:horizontal { border: 1px solid #777; background:#b55858;}")
+        horizontalLayout6.addWidget(self.slider)
+
+        horizontalLayout7 = QHBoxLayout()
+        self.playButton = QPushButton()
+        self.stopButton = QPushButton()
+
+        self.playButton.setIcon(self.PLAY_ICON)
+        self.stopButton.setIcon(self.STOP_ICON)
+
+        self.playButton.clicked.connect(self.playSong)
+        self.stopButton.clicked.connect(self.stopSong)
+        
+        horizontalLayout7.addStretch(1)
+        horizontalLayout7.addWidget(self.playButton)
+        horizontalLayout7.addWidget(self.stopButton)
+        horizontalLayout7.addStretch(1)
+
+
+        horizontalLayout8 = QHBoxLayout()
+        self.saveButton = QPushButton()
+        self.saveButton.setText("Save")
+        self.saveButton.clicked.connect(self.saveSong)
+        
+        horizontalLayout8.addStretch(1)
+        horizontalLayout8.addWidget(self.saveButton)
+
+        mainLayout.addLayout(horizontalLayout1)
+        mainLayout.addLayout(horizontalLayout2)
+        mainLayout.addWidget(self.styleGroupBox)
+        mainLayout.addLayout(horizontalLayout3)
+        mainLayout.addLayout(horizontalLayout4)
+        mainLayout.addWidget(self.descriptionTextEdit)
+        mainLayout.addLayout(horizontalLayout5)
+        mainLayout.addLayout(horizontalLayout6)
+        mainLayout.addLayout(horizontalLayout7)
+        mainLayout.addLayout(horizontalLayout8)
+
+    def clearForm(self):
+        self.titleEdit.clear()
+        self.statusBox.clear()
+        for widget in self.styleGroupBox.children():
+            if not isinstance(widget, QGridLayout):
+                widget.deleteLater()
+
+        self.durationLine.clear()
+        self.projectComboBox.clear()
+        self.variationLine.clear()
+        self.descriptionTextEdit.clear()
+        self.locationLine.clear()
+
+    def changePage(self, index):
+        title = self.songsListWidget.item(index).data(Qt.UserRole)
+        self.clearForm()
+        self.populateForm(title)
+        self.slider.setValue(0)
+
+    def populateForm(self, title): #title is the primary key
+        listArray = queries("""SELECT title, status, style, duration, description,
+        location, project, variation_another_song, timestamp from songs WHERE title = ?""", (title,))
+        print(listArray)
+        if len(listArray) != 0:
+            title = listArray[0][0]
+            status = listArray[0][1]
             
-            print(title, status, styles, duration, description, location, project, timestamp)
-            #UI SETUP
+            styles = []
+            styleArray = listArray[0][2]
+            if styleArray != None:
+                if ",,," in styleArray:
+                    styles = styleArray.split(",,,")
+                else:
+                    styles.append(styleArray)
+            duration = listArray[0][3]
+            description = listArray[0][4]
+            location = listArray[0][5]
+            project = listArray[0][6]
+            variation_another_song = listArray[0][7]
+            timestamp = listArray[0][8]
+        else:
+            title = None
+            status = None
+            styles = None
+            duration = None
+            description = None
+            location = None
+            project = None
+            variation_another_song = None
+            timestamp = None
 
-            widgetPage = QWidget()
-            mainLayout = QVBoxLayout(widgetPage)
-            
-            horizontalLayout1 = QHBoxLayout()
-            titleLabel = QLabel("Song name:")
-            titleEdit = QLineEdit()
-            if title != None: 
-                titleEdit.setText(title)
-                print("hey")
-            else: print("no")
-            titleEdit.setAccessibleName("Title")
-            titleEdit.editingFinished.connect(partial(self.checkSong, titleEdit))
+        if title != None: self.titleEdit.setText(title)
 
-            horizontalLayout1.addWidget(titleLabel)
-            horizontalLayout1.addWidget(titleEdit)
+        self.statusBox.addItems(["Select...", "Demo", "WIP", "Idea", "Unfinished song", "EQ", "Master", "Finished"])
+        if status != None: self.statusBox.setCurrentText(status)
+        if timestamp != None: self.dateEdit.setDateTime(datetime.strptime(timestamp, '%d/%m/%Y %H:%M'))
+        else: self.dateEdit.setDateTime(datetime.now())#default
 
-            horizontalLayout2 = QHBoxLayout()
-            statusLabel = QLabel("Status:")
-            statusBox = QComboBox()
-            statusBox.addItems(["Select...", "Demo", "WIP", "Idea", "Unfinished song", "EQ", "Master", "Finished"])
-            if status != None: statusBox.setCurrentText(status)
-            statusBox.setAccessibleName("Status")
-            dateLabel = QLabel("Date:")
-            dateEdit = QDateTimeEdit()
-            dateEdit.setCalendarPopup(True)
-            dateEdit.setAccessibleName("Date")
-            if timestamp != None: dateEdit.setDateTime(timestamp)
-            else: dateEdit.setDateTime(datetime.now())#default
+        styleArray = queries("select style from songs where style is not null")
+        
+        """
+        print(styleArray)
+        if styleArray != None:
+            styleArray = styleArray[0][0]
+            if ",,," in styleArray:
+                styles = styleArray.split(",,,")
+            else:
+                styles.append(styleArray)"""
 
-            horizontalLayout2.addWidget(statusLabel)
-            horizontalLayout2.addWidget(statusBox)
-            horizontalLayout2.addStretch(1)
-            horizontalLayout2.addWidget(dateLabel)
-            horizontalLayout2.addWidget(dateEdit)
+        stylesArray = []
+        
+        query = queries("select style from songs where style is not null")
+        if len(query) != 0:
+            for style in query:
+                stylesMiniArray = style[0].split(",,,")
+                stylesMiniArray = list(filter(None, stylesMiniArray))
+                for item in stylesMiniArray:
+                    if item not in stylesArray:
+                        print(item, "la puta de horos")
+                        if item != '':
+                            stylesArray.append(item)
 
-            styleLabel = QLabel("Style:")
-            styleEdit = QLineEdit()
+        self.x = 0
+        self.y = 0
 
-            stylesArray = queries("select style from music.songs")[0][0]
-            print(stylesArray)
-
-            self.x = 0
-            self.y = 0
-            styleGroupBox = QGroupBox()
-            styleGroupBox.setTitle("Style:")
-            styleGroupBox.setAccessibleName("Style")
-            self.styleLayout = QGridLayout(styleGroupBox)
+        if len(stylesArray) != 0:
             for style in stylesArray:
-                checkBox = QCheckBox(style)
-                self.styleLayout.addWidget(checkBox, self.x, self.y)
-                self.checkBoxPositionAsignment()
-            self.addStyle()
-            
-            
-            if styles != None: 
+                    print("style", style)
+                    checkBox = QCheckBox(style)
+                    self.styleLayout.addWidget(checkBox, self.x, self.y)
+                    self.checkBoxPositionAsignment()
+                    print("here")
+        self.addStyle()
+
+        if styles!= None:
+            if len(styles) != 0: 
+                print("fukcing sytles", styles)
                 for style in styles:
-                    for checkbox in styleGroupBox.children():
+                    for checkbox in self.styleGroupBox.children():
                         if isinstance(checkbox, QCheckBox):
                             if checkbox.text() == style:
                                 checkbox.setChecked(True)
 
-            
-            horizontalLayout3 = QHBoxLayout()
-            durationLabel = QLabel("Duration:")
-            self.durationLine = QTimeEdit()
-            self.durationLine.setDisplayFormat("mm:ss")
-            self.durationLine.setAccessibleName("Duration")
-            if duration != None:
+        if duration != None:
                 time = QTime(0,0,0)
                 self.durationLine.setTime(time.addSecs(duration))
-            projectLabel = QLabel("Project")
-
-            #in a function to retrieve existing
-            projectsArray = ["Select..."]
-            for project in queries("SELECT project from music.songs")[0]:
+        
+        projectsArray = ["Select..."]
+        projectsArrayQuery = queries("SELECT project from songs")
+        if len(projectsArrayQuery) != 0:
+            for project in projectsArrayQuery[0]:
                 if project not in projectsArray:
                     projectsArray.append(project)
-            
+        if project != None: self.projectComboBox.setCurrentText(project)
 
-            projectComboBox = QComboBox()
-            projectComboBox.addItems(projectsArray)
-            projectComboBox.setAccessibleName("Project")
-            projectComboBox.setEditable(True)
-            if project != None:
-                projectComboBox.setCurrentText(project)
-            
-            horizontalLayout3.addWidget(durationLabel)    
-            horizontalLayout3.addWidget(self.durationLine)
-            horizontalLayout3.addWidget(projectLabel)
-            horizontalLayout3.addWidget(projectComboBox)
+        if variation_another_song != None: self.variationLine.setText(variation_another_song)
+        if description != None: self.descriptionTextEdit.setText(description)
+        
+        available = False
+        if location != None: 
+            self.locationLine.setText(location)
+        if len(self.locationLine.text()) != 0:
+            try:
+                self.playlist = QMediaPlaylist()
+                self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(location)))
+                self.mediaPlayer.setPlaylist(self.playlist)
+            except:
+                pass
+            available = True#I know this is stupid but just in case
 
-            horizontalLayout4 = QHBoxLayout()
-            descriptionLabel = QLabel("Description:")
-            variationLabel = QLabel("Variation from another song: ")
-            variationLine = QLineEdit()
-            if variation_another_song != None:
-                variationLine.setText(variation_another_song)
-            completer = QCompleter(self.songVariations())
-            variationLine.setCompleter(completer)
-            variationLine.setAccessibleName("Variation")
+        self.slider.setVisible(available)
+        self.playButton.setVisible(available)
+        self.stopButton.setVisible(available)
 
-            horizontalLayout4.addWidget(descriptionLabel)
-            horizontalLayout4.addStretch(1)
-            horizontalLayout4.addWidget(variationLabel)
-            horizontalLayout4.addWidget(variationLine)
+    def populateList(self, locatorItem=None, locatorColumn=None):
+        print(locatorItem, locatorColumn)
+        self.songsListWidget.blockSignals(True)
+        self.songsListWidget.clear()
+        if locatorItem == None or locatorItem == "": 
+            listArray = queries("""SELECT title, status, timestamp from songs """)
+            print(listArray)
+        else:
+            if locatorColumn != "All": #No strings concatenation, no security holes
+                if locatorColumn == "Title": 
+                    sql = """SELECT title, status, timestamp from songs where title LIKE ?"""
+                elif locatorColumn == "Status": 
+                    sql = """SELECT title, status, timestamp from songs where status LIKE ?"""
+                elif locatorColumn == "Description": 
+                    sql = """SELECT title, status, timestamp from songs where description LIKE ?"""
+                elif locatorColumn == "Style": 
+                    sql = """SELECT title, status, timestamp from songs where style LIKE ?"""
 
-            descriptionTextEdit = QTextEdit()
-            if description != None: descriptionTextEdit.setText(description)
-            descriptionTextEdit.setAccessibleName("Description")
+                locatorItem = "%" + locatorItem + "%"
+                listArray = queries(sql, (locatorItem,))
+            else:
+                locatorItem = "%" + locatorItem + "%"
+                variables = [locatorItem, locatorItem, locatorItem, locatorItem, locatorItem]
+                listArray = queries("""SELECT title, status, timestamp from songs 
+                where title LIKE ? OR type LIKE ? OR original_song LIKE ? OR link LIKE ? 
+                OR description LIKE ?""", variables)
+        for item in listArray:
+            title = item[0]
+            status = item[1]
+            timestamp = item[2]
+            try:
+                timestamp = datetime.strptime(timestamp, "%d/%m/%Y %H:%M")
+                timestamp = timestamp.strftime("%d/%m/%Y")
+            except:
+                timestamp = ""
 
-            horizontalLayout5 = QHBoxLayout()
-            locationLabel = QLabel("Location:")
-            locationLine = QLineEdit()
-            if location != None: locationLine.setText(location)
-            locationLine.setAccessibleName("Location")
-            locationButton = QPushButton("...")
-
-            horizontalLayout5.addWidget(locationLabel)
-            horizontalLayout5.addWidget(locationLine)
-            horizontalLayout5.addWidget(locationButton)
-
-            horizontalLayout6 = QHBoxLayout()
-            saveButton = QPushButton()
-            saveButton.setText("Save")
-            saveButton.clicked.connect(partial(self.saveSong, widgetPage))
-            
-            horizontalLayout6.addStretch(1)
-            horizontalLayout6.addWidget(saveButton)
-
-            mainLayout.addLayout(horizontalLayout1)
-            mainLayout.addLayout(horizontalLayout2)
-            mainLayout.addWidget(styleGroupBox)
-            mainLayout.addLayout(horizontalLayout3)
-            mainLayout.addLayout(horizontalLayout4)
-            mainLayout.addWidget(descriptionTextEdit)
-            mainLayout.addLayout(horizontalLayout5)
-            mainLayout.addLayout(horizontalLayout6)
-
-
-            """TODO
-            
-            ADD A "New Song" in the list Widget permanently,
-            so form will always be editing an "existing" one instead of creating
-            to make it more simple.
-
-            checkboxes order by the amount of times they have been used.
-
-            validation to check if song already exists
-
-            when choose location of the song, copy the song to another folder
-            if song does not exist in either of both locations, prompt to define again.
-
-            add button to remove song, specify reason (add it to a field and have a different select query)
-            
-            """
-            
-
-            x=+1
-
-            self.listStackedWidget.addWidget(widgetPage)
-        return self.listStackedWidget
-
-    def changePage(self, index):
-        self.listStackedWidget.setCurrentIndex(index)
-        self.songsListWidget.currentRowChanged.disconnect(self.changePage)
-        self.songsListWidget.setCurrentRow(index)
-        self.songsListWidget.currentRowChanged.connect(self.changePage)
+            text = "%s %s %s" % (title, status, timestamp)
+            qItem = QListWidgetItem(text)
+            qItem.setData(Qt.UserRole, title)
+            self.songsListWidget.addItem(qItem)
+        #new idea
+        qItem = QListWidgetItem("New song...")
+        qItem.setData(Qt.UserRole, "New song...") #otherwise that would be an error
+        self.songsListWidget.addItem(qItem)
+        self.songsListWidget.blockSignals(False)
 
     def songVariations(self):
-        sql = "SELECT title from music.songs"
+        sql = "SELECT title from songs"
         songArray = []
         for song in queries(sql)[0]:
             songArray.append(song)
@@ -251,7 +389,6 @@ class SongList(QWidget):
         if text != "":
             self.styleLayout.takeAt(self.styleLayout.count()-1).widget().deleteLater()
 
-
             styleCheckBox = QCheckBox()
             styleCheckBox.setText(text)
             print(text)
@@ -263,63 +400,94 @@ class SongList(QWidget):
 
     def checkSong(self, widget):
         text = widget.text()
-        sql = "SELECT title from music.songs where title = %s"
+        sql = "SELECT title from songs where title = %s"
         if len(queries(sql, (text,))) != 0:
             widget.setText("")
             
-    def saveSong(self, widgetPage):
-        title = ""
-        status = ""
-        date = ""
-        style = []
-        duration = ""
-        project = ""
-        variation = ""
-        description = ""
-        location = ""
-        print("gettingh ere")
+    def playSong(self):
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+            self.mediaPlayer.pause()
+        else:
+            self.mediaPlayer.play()
+    
+    def mediaStateChanged(self):
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+            self.playButton.setIcon(self.PAUSE_ICON)
+        else:
+            self.playButton.setIcon(self.PLAY_ICON)
+    def positionChanged(self, position):
+        print(position, self.mediaPlayer.duration(), "hoy")
+        if position != self.mediaPlayer.duration():
+            self.slider.setValue(position)
+    def durationChanged(self, duration):
+        print(duration, self.mediaPlayer.position(), "yeha")
+        if duration != self.mediaPlayer.position():
+            print("duration chagned")
+            self.slider.setRange(0, duration)
+    def playSlider(self):
+        self.mediaPlayer.setPosition(self.slider.value())
 
-        for widget in widgetPage.children():
-            print(widget)
-            if not isinstance(widget, (QHBoxLayout, QVBoxLayout)):
-                if widget.accessibleName() == "Title": title = widget.text()
-                elif widget.accessibleName() == "Status":  status = widget.currentText() #Combo Bo 
-                elif widget.accessibleName() == "Date":  date = widget.text()#Date 
-                elif widget.accessibleName() == "Style": 
-                    for checkBox in widget.children():
-                        if isinstance(checkBox, QCheckBox):
-                            print("one fo this days", checkBox)
-                            if checkBox.isChecked():
-                                style.append(checkBox.text()) 
-                elif widget.accessibleName() == "Duration": 
-                    time = widget.time()
-                    duration = QTime(0, 0).secsTo(time)
-                elif widget.accessibleName() == "Project":  project = widget.currentText()#QComboBo 
-                elif widget.accessibleName() == "Variation":  variation = widget.text()#QLineEdi 
-                elif widget.accessibleName() == "Description":  description = widget.toPlainText()#QTextEdi 
-                elif widget.accessibleName() == "Location":  location = widget.text()#QLineEdit
+    def stopSong(self):
+        self.mediaPlayer.stop()
+
+    def locateFile(self):
+        print("Here")
+        self.fileSystem = QFileDialog()
+        self.fileSystem.show()
+        self.fileSystem.fileSelected.connect(self.fileLoaded)
+
+    def fileLoaded(self, path):
+        self.locationLine.setText(path)
+        try:
+            self.playlist = QMediaPlaylist()
+            self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(path)))
+            self.mediaPlayer.setPlaylist(self.playlist)
+        except:
+            print("fail")
+        self.slider.setVisible(True)
+        self.playButton.setVisible(True)
+        self.stopButton.setVisible(True)
+
+    def saveSong(self):
+        title = self.titleEdit.text()
+        status = self.statusBox.currentText()
+        date = self.dateEdit.text()
+        style = ""
+        
+        print(status, style)
+        x = 0
+        for checkBox in self.styleGroupBox.children():
+            if isinstance(checkBox, QCheckBox):
+                if checkBox.isChecked():
+                    style += (checkBox.text()) + ",,,"
+                    x+=1
+        if x != 0: style = style.rstrip(",,,")
+        else: style = None
+
+        duration = self.durationLine.time()
+        duration = QTime(0, 0).secsTo(duration)
+
+        project = self.projectComboBox.currentText()
+        variation = self.variationLine.text()
+        description = self.descriptionTextEdit.toPlainText()
+        location = self.locationLine.text()
 
         variables = [title, status, description, location, project,\
         variation, date, style, duration]
 
         print("---------", variables)
 
-
-
-        sql = """INSERT into music.songs 
+        sql = """INSERT OR REPLACE into songs 
         (title, status, description, location, project,
         variation_another_song, timestamp, style, duration)
 
         values 
-        (%s,      %s,       %s,          %s,     %s,
-         %s,                     %s,         %s,      %s)
+        (?,      ?,       ?,          ?,     ?,
+         ?,                     ?,         ?,      ?)"""
 
-        ON CONFLICT ON CONSTRAINT songs_pkey do update set title=EXCLUDED.title, status=EXCLUDED.status, 
-        description=EXCLUDED.description, location=EXCLUDED.location, 
-        project=EXCLUDED.project, variation_another_song=EXCLUDED.variation_another_song, 
-        timestamp=EXCLUDED.timestamp, style=EXCLUDED.style, duration=EXCLUDED.duration"""
+        print("I'm coming!!!")
         queries(sql, variables)
-
+        self.populateList()
 
 
 if __name__ == '__main__':
