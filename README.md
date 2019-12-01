@@ -10,6 +10,8 @@ Dependencies needed:
 - sqlite3
 - pyaudio
 
-To use python MusicDatabase.py
-
+To use:
+```
+python MusicDatabase.py
+```
 Executable to be compiled soon. Only tested in Windows 10.
