@@ -33,7 +33,7 @@ def createTables():
 
 def dropTables():
     #TODO QMessageBox
-    conn = sqlite3.connect("test.db")
+    conn = sqlite3.connect("dbtest.db")
     c = conn.cursor()
     c.execute('''DROP TABLE songs''')
     c.execute('''DROP TABLE recorded_ideas''')
