@@ -9,6 +9,7 @@ Dependencies needed:
 - wavio
 - sqlite3
 - pyaudio
+- Pillow
 
 To use:
 ```
