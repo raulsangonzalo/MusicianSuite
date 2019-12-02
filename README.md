@@ -4,6 +4,7 @@ A suite of functions for the average musician
 Dependencies needed:
 
 - PySide2
+- PyQt5 (only for QSharedMemory, waiting for PySide2 bindings)
 - soundcard
 - numpy
 - wavio
