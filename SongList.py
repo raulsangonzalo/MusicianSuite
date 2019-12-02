@@ -401,11 +401,11 @@ class SongList(QWidget):
         self.styleLayout.addWidget(styleEdit)
 
 
-    def checkSong(self, widget):
-        text = widget.text()
+    def checkSong(self):
+        text = self.titleEdit.text()
         sql = "SELECT title from songs where title = %s"
         if len(queries(sql, (text,))) != 0:
-            widget.setText("")
+            self.titleEdit.setText("")
 
     def playSong(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
