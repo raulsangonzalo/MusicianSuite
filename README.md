@@ -7,6 +7,7 @@ Dependencies needed:
 - soundcard
 - numpy
 - wavio
+- pydub
 - sqlite3
 - Pillow
 
