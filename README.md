@@ -13,6 +13,6 @@ Dependencies needed:
 
 To use:
 ```
-python MusicDatabase.py
+python musiciansuite.py
 ```
 Executable to be compiled soon. Only tested in Windows 10.
