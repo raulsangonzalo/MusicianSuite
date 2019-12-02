@@ -355,11 +355,11 @@ class RecordIdeas(QWidget):
         self.populateForm(title)
         self.slider.setValue(0)
 
-    def checkIdea(self, widget):
-        text = widget.text()
+    def checkIdea(self):
+        text = self.titleEdit.text()
         sql = "SELECT title from recorded_ideas where title = ?"
         if len(queries(sql, (text,))) != 0:
-            widget.setText("")
+            self.titleEdit.setText("")
     def validateIdea(self, widget):
         """if self.listStackedWidget.currentIndex() != self.listStackedWidget.count() - 1:
             msg = QMessageBox.question(self, 'Change title?', 'Do you want to change the title?', QMessageBox.Yes, QMessageBox.No)
