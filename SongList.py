@@ -3,15 +3,17 @@ from datetime import datetime, timedelta
 from functools import partial
 
 import numpy as np
+from PySide2.QtCore import QDir, Qt, QTime, QUrl
+from PySide2.QtGui import QFont, QIcon, QPixmap
+from PySide2.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
+from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox, QCompleter,
+                               QDateTimeEdit, QDialog, QFileDialog,
+                               QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+                               QLineEdit, QListWidget, QListWidgetItem,
+                               QMessageBox, QPushButton, QSizePolicy, QSlider,
+                               QStackedWidget, QTextEdit, QTimeEdit,
+                               QVBoxLayout, QWidget)
 
-from PyQt5.QtCore import QDir, Qt, QTime, QUrl
-from PyQt5.QtGui import QFont, QIcon, QPixmap
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
-from PyQt5.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QCompleter, QDateTimeEdit, QDialog,
-    QFileDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-    QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSizePolicy,
-    QSlider, QStackedWidget, QTextEdit, QTimeEdit, QVBoxLayout, QWidget)
 from sqliteHandler import queries
 
 
@@ -270,7 +272,6 @@ class SongList(QWidget):
                 stylesMiniArray = list(filter(None, stylesMiniArray))
                 for item in stylesMiniArray:
                     if item not in stylesArray:
-                        print(item, "la puta de horos")
                         if item != '':
                             stylesArray.append(item)
 
@@ -283,12 +284,10 @@ class SongList(QWidget):
                     checkBox = QCheckBox(style)
                     self.styleLayout.addWidget(checkBox, self.x, self.y)
                     self.checkBoxPositionAsignment()
-                    print("here")
         self.addStyle()
 
         if styles!= None:
             if len(styles) != 0:
-                print("fukcing sytles", styles)
                 for style in styles:
                     for checkbox in self.styleGroupBox.children():
                         if isinstance(checkbox, QCheckBox):
@@ -420,11 +419,9 @@ class SongList(QWidget):
         else:
             self.playButton.setIcon(self.PLAY_ICON)
     def positionChanged(self, position):
-        print(position, self.mediaPlayer.duration(), "hoy")
         if position != self.mediaPlayer.duration():
             self.slider.setValue(position)
     def durationChanged(self, duration):
-        print(duration, self.mediaPlayer.position(), "yeha")
         if duration != self.mediaPlayer.position():
             print("duration chagned")
             self.slider.setRange(0, duration)
@@ -435,7 +432,6 @@ class SongList(QWidget):
         self.mediaPlayer.stop()
 
     def locateFile(self):
-        print("Here")
         self.fileSystem = QFileDialog()
         self.fileSystem.show()
         self.fileSystem.fileSelected.connect(self.fileLoaded)
@@ -489,7 +485,6 @@ class SongList(QWidget):
         (?,      ?,       ?,          ?,     ?,
          ?,                     ?,         ?,      ?)"""
 
-        print("I'm coming!!!")
         queries(sql, variables)
         self.populateList()
 

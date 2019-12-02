@@ -4,12 +4,12 @@ import time
 
 import numpy
 import soundcard as sd
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QIcon, QPixmap
+from PySide2.QtWidgets import (
+    QAction, QApplication, QHBoxLayout, QMainWindow, QStackedWidget,
+    QSystemTrayIcon, QToolBar, QWidget)
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
-                             QStackedWidget, QSystemTrayIcon, QToolBar,
-                             QWidget)
 from RecordIdeas import RecordIdeas
 from SongList import SongList
 from sqliteHandler import createTables
@@ -58,4 +58,4 @@ if __name__ == '__main__':
     app = QApplication([])
     musicMainWindow = MusicMainWindow()
     musicMainWindow.show()
-    app.exec()
+    app.exec_()

@@ -1,6 +1,7 @@
 import psycopg2
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent
+from PySide2.QtCore import QEvent, Qt, Signal
+from PySide2.QtWidgets import QDialog
+
 
 def queries(sqlstr, variables=''):
     conn = psycopg2.connect("dbname='Raul' user='postgres' host='127.0.0.1' password='R'")
@@ -18,18 +19,18 @@ def queries(sqlstr, variables=''):
     return items_available
 
 class QDialogPlus(QDialog):
-    signalSpacePressed = pyqtSignal(str)   
+    signalSpacePressed = Signal(str)
 
     def __init__(self, parent=None):
         super(QDialogPlus, self).__init__(parent)
-    
+
     def event(self, event):
         super().event(event)
         if (event.type()==QEvent.KeyPress) and (event.key()==Qt.Key_Space):
             self.signalSpacePressed.emit("Key Space; ")
             return True
         if (event.type()==QEvent.KeyPress) and (event.key()==Qt.Key_R):
-            self.signalSpacePressed.emit("Key R; ")    
+            self.signalSpacePressed.emit("Key R; ")
             return True
         else:
             return False

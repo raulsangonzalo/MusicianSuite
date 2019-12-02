@@ -9,17 +9,18 @@ from pathlib import Path
 import numpy
 import soundcard as sd
 import wavio
+from PySide2.QtCore import QCoreApplication, QSize, Qt, QThread, QTime, QUrl
+from PySide2.QtGui import QIcon, QPixmap
+from PySide2.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
+from PySide2.QtWidgets import (QApplication, QCheckBox, QComboBox,
+                               QDateTimeEdit, QDialog, QFileDialog,
+                               QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+                               QLineEdit, QListWidget, QListWidgetItem,
+                               QMessageBox, QPushButton, QSizePolicy, QSlider,
+                               QSplitter, QStackedWidget, QStyle, QTextEdit,
+                               QTimeEdit, QToolButton, QVBoxLayout, QWidget)
 
 from custom import QDialogPlus
-from PyQt5.QtCore import QCoreApplication, QSize, Qt, QThread, QTime, QUrl
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
-from PyQt5.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QDateTimeEdit, QDialog, QFileDialog,
-    QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
-    QListWidgetItem, QMessageBox, QPushButton, QSizePolicy, QSlider, QSplitter,
-    QStackedWidget, QStyle, QTextEdit, QTimeEdit, QToolButton, QVBoxLayout,
-    QWidget)
 from SongList import SongList
 from sqliteHandler import createTables, queries
 from waveform import Waveform
@@ -350,7 +351,6 @@ class RecordIdeas(QWidget):
         self.recordedIdeasListWidget.blockSignals(False)
     def changePage(self, index):
         title = self.recordedIdeasListWidget.item(index).data(Qt.UserRole)
-        print(":::::::::>", title)
         self.clearForm()
         self.populateForm(title)
         self.slider.setValue(0)
@@ -372,7 +372,7 @@ class RecordIdeas(QWidget):
         pass
     #TODO PROMPT NEW TITLE
     def record(self):
-        #print("recording1")
+        print("recording")
         songName = self.titleEdit.text()
 
         if len(songName) > 0 and len(self.locationLine.text()) == 0:
@@ -397,9 +397,6 @@ class RecordIdeas(QWidget):
             self.recordDialog.show()
 
     def startRecording(self):
-        #print("start Recording")
-        x = 0
-
         recordFolder = os.getcwd()
         recordFolder = os.path.join(recordFolder, "recordings")
 
@@ -415,7 +412,6 @@ class RecordIdeas(QWidget):
             with speakerLoopback.recorder(samplerate=44100, channels=2) as mic:
                 for _ in range(1000000):
                     if self.recordingEnabled:
-                        #print("recording", _)
                         QCoreApplication.processEvents()
                         data = mic.record(numframes=1024)#, samplerate=44100, channels=2)
                         arrays.append(data)
@@ -442,7 +438,6 @@ class RecordIdeas(QWidget):
         return True
     def waveFormAvailable(self):
         #TODO access both ways
-        #print("in wave form")
 
         available = True
 
@@ -481,13 +476,10 @@ class RecordIdeas(QWidget):
         else:
             self.playButton.setIcon(self.PLAY_ICON)
     def positionChanged(self, position):
-        print(position, self.mediaPlayer.duration(), "hoy")
         if position != self.mediaPlayer.duration():
             self.slider.setValue(position)
     def durationChanged(self, duration):
-        print(duration, self.mediaPlayer.position(), "yeha")
         if duration != self.mediaPlayer.position():
-            print("duration chagned")
             self.slider.setRange(0, duration)
     def playSlider(self):
         self.mediaPlayer.setPosition(self.slider.value())
@@ -496,7 +488,6 @@ class RecordIdeas(QWidget):
         self.mediaPlayer.stop()
 
     def locateFile(self):
-        print("Here")
         self.fileSystem = QFileDialog()
         self.fileSystem.show()
         self.fileSystem.fileSelected.connect(self.fileLoaded)
