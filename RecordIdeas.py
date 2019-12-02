@@ -110,8 +110,8 @@ class RecordIdeas(QWidget):
         titleLabel = QLabel("Idea name:")
         self.titleEdit = QLineEdit()
 
-        self.titleEdit.editingFinished.connect(partial(self.checkIdea, self.titleEdit))
-        self.titleEdit.textChanged.connect(partial(self.validateIdea, self.titleEdit))
+        self.titleEdit.editingFinished.connect(self.checkIdea)
+        self.titleEdit.textChanged.connect(self.validateIdea)
 
         horizontalLayout1.addWidget(titleLabel)
         horizontalLayout1.addWidget(self.titleEdit)
