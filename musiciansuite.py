@@ -15,7 +15,8 @@ from mainwindow import MusicMainWindow
 from sqliteHandler import createTables
 
 class MusicianSuite(QApplication): 
-    signalSpacePressed = pyqtSignal(str)
+    signalReceived = pyqtSignal(object)
+    messageReceived = pyqtSignal()
     def __init__(self, argv, key):
         super().__init__(argv)
         QSharedMemory(key).attach()
