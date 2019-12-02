@@ -3,7 +3,7 @@ A suite of functions for the average musician
 
 Dependencies needed:
 
-- PyQt5
+- PySide2
 - soundcard
 - numpy
 - wavio
