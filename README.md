@@ -8,7 +8,6 @@ Dependencies needed:
 - numpy
 - wavio
 - sqlite3
-- pyaudio
 - Pillow
 
 To use:
