@@ -1,9 +1,9 @@
-from PySide2.QtCore import QEvent, Qt, Signal
-from PySide2.QtWidgets import QDialog
+from PyQt5.QtCore import QEvent, Qt, pyqtSignal
+from PyQt5.QtWidgets import QDialog
 
 
 class QDialogPlus(QDialog):
-    signalSpacePressed = Signal(str)
+    signalSpacePressed = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super(QDialogPlus, self).__init__(parent)
