@@ -1,21 +1,19 @@
-from PyQt5.QtWidgets import QMainWindow, QApplication, QToolBar, QAction, QWidget, QHBoxLayout,\
-                            QStackedWidget, QSystemTrayIcon
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtCore import Qt
-
-from sqliteHandler import createTables
-import soundcard as sd
-import numpy
-import pyaudio
-import wavio
-import time
-import threading
 import os
-global enable
-enable = True
+import threading
+import time
 
-from SongList import SongList
+import numpy
+import soundcard as sd
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
+                             QStackedWidget, QSystemTrayIcon, QToolBar,
+                             QWidget)
 from RecordIdeas import RecordIdeas
+from SongList import SongList
+from sqliteHandler import createTables
+
 
 class MusicMainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -30,12 +28,12 @@ class MusicMainWindow(QMainWindow):
 
         self.ICON0 = QIcon(QPixmap(os.path.join(resourcesPath, "icon0.png")))
         self.ICON1 = QIcon(QPixmap(os.path.join(resourcesPath, "icon1.png")))
-        
+
         songList = SongList()
         recordIdeas = RecordIdeas()
-        
+
         toolBar = QToolBar("title")
-        
+
         toolBar.addAction(self.ICON0, "Songs")
         toolBar.addAction(self.ICON1, "Record Ideas")
 
@@ -45,7 +43,7 @@ class MusicMainWindow(QMainWindow):
 
         toolBar.actionTriggered.connect(self.toolBarActionTriggered)
         self.addToolBar(Qt.TopToolBarArea, toolBar)
-        
+
         self.setCentralWidget(stackedWidget)
 
     def toolBarActionTriggered(self, action):
@@ -61,9 +59,3 @@ if __name__ == '__main__':
     musicMainWindow = MusicMainWindow()
     musicMainWindow.show()
     app.exec()
-
-
-
-        
-        
-

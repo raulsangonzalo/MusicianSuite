@@ -1,28 +1,29 @@
-from PyQt5.QtWidgets import QApplication, QDialog, QListWidget, QListWidgetItem, QDialog, QApplication,\
-     QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QMessageBox, QStackedWidget, QLineEdit,\
-     QWidget, QComboBox, QGridLayout, QCheckBox, QGroupBox, QTextEdit, QPushButton, QTimeEdit,\
-     QDateTimeEdit, QToolButton, QSlider, QSplitter, QSizePolicy, QStyle, QFileDialog
-from PyQt5.QtCore import Qt, QTime, QSize, QThread, QCoreApplication, QUrl
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
+import os
+import pathlib
+import threading
+import time
+from datetime import datetime
+from functools import partial
+from pathlib import Path
+
+import numpy
+import soundcard as sd
+import wavio
 
 from custom import QDialogPlus
-from sqliteHandler import createTables, queries
-import soundcard as sd
-import numpy
-import pyaudio
-import wavio
-import time
-import threading
-
-from functools import partial
-from datetime import datetime
-import os
-from pathlib import Path
-from waveform import Waveform
-import pathlib
-
+from PyQt5.QtCore import QCoreApplication, QSize, Qt, QThread, QTime, QUrl
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
+from PyQt5.QtWidgets import (
+    QApplication, QCheckBox, QComboBox, QDateTimeEdit, QDialog, QFileDialog,
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QMessageBox, QPushButton, QSizePolicy, QSlider, QSplitter,
+    QStackedWidget, QStyle, QTextEdit, QTimeEdit, QToolButton, QVBoxLayout,
+    QWidget)
 from SongList import SongList
+from sqliteHandler import createTables, queries
+from waveform import Waveform
+
 
 class RecordIdeas(QWidget):
     def __init__(self, parent=None):
@@ -37,12 +38,12 @@ class RecordIdeas(QWidget):
         self.PLAY_ICON = QIcon(QPixmap(os.path.join(resourcesPath, "play.png")))
         self.PAUSE_ICON = QIcon(QPixmap(os.path.join(resourcesPath, "pause.png")))
         self.STOP_ICON = QIcon(QPixmap(os.path.join(resourcesPath, "stop.png")))
-        
+
         self.setupMediaPlayer()
         self.setupUi()
 
         print(time.time() - startTime)
-    
+
     def setupMediaPlayer(self):
         self.mediaPlayer = QMediaPlayer()
 
@@ -55,7 +56,7 @@ class RecordIdeas(QWidget):
         self.setWindowTitle("Recorded Ideas")
         mainLayout = QHBoxLayout(self)
         #splitterWidget.addWidget(widget)
-        
+
         verticalListLayout = QVBoxLayout()
 
         self.recordedIdeasListWidget = QListWidget()
@@ -66,7 +67,7 @@ class RecordIdeas(QWidget):
         locatorLine = QLineEdit()
         locatorLine.setPlaceholderText("Locator")
         locatorBox = QComboBox()
-        items = ["Title", "Type", "Original Song", "Link", 
+        items = ["Title", "Type", "Original Song", "Link",
         "Description", "All"]
         locatorBox.addItems(items)
         locatorBox.setCurrentIndex(len(items)-1)
@@ -92,7 +93,7 @@ class RecordIdeas(QWidget):
         #screen/2/3
 
         #mainForm setup
-        
+
         self.populateList()
         self.mainFormSetupUi()
         #self.show()
@@ -104,7 +105,7 @@ class RecordIdeas(QWidget):
 
         #Horizontal Layout 1
         horizontalLayout1 = QHBoxLayout()
-        
+
         titleLabel = QLabel("Idea name:")
         self.titleEdit = QLineEdit()
 
@@ -208,7 +209,7 @@ class RecordIdeas(QWidget):
 
         self.playButton.clicked.connect(self.playSong)
         self.stopButton.clicked.connect(self.stopSong)
-        
+
         horizontalRecordLayout3.addStretch(1)
         horizontalRecordLayout3.addWidget(self.playButton)
         horizontalRecordLayout3.addWidget(self.stopButton)
@@ -223,7 +224,7 @@ class RecordIdeas(QWidget):
         self.saveButton = QPushButton()
         self.saveButton.setText("Save")
         self.saveButton.clicked.connect(self.saveRecording)
-        
+
         horizontalLayout7.addStretch(1)
         horizontalLayout7.addWidget(self.saveButton)
 
@@ -289,7 +290,7 @@ class RecordIdeas(QWidget):
             time = QTime(0,0,0)
             self.minuteLine.setTime(time.addSecs(minute))
         if description != None: self.descriptionTextEdit.setText(description)
-        if location != None: 
+        if location != None:
             self.locationLine.setText(location)
             self.locationButton.setEnabled(False)
 
@@ -304,19 +305,19 @@ class RecordIdeas(QWidget):
             location, minute, timestamp from recorded_ideas """)
         else:
             if locatorColumn != "All": #No strings concatenation, no security holes
-                if locatorColumn == "Title": 
+                if locatorColumn == "Title":
                     sql = """SELECT title, type, original_song, link, description,
                     location, minute, timestamp from recorded_ideas where title LIKE ?"""
-                elif locatorColumn == "Type": 
+                elif locatorColumn == "Type":
                     sql = """SELECT title, type, original_song, link, description,
                     location, minute, timestamp from recorded_ideas where type LIKE ?"""
-                elif locatorColumn == "Original Song": 
+                elif locatorColumn == "Original Song":
                     sql = """SELECT title, type, original_song, link, description,
                     location, minute, timestamp from original_song where title LIKE ?"""
-                elif locatorColumn == "Link": 
+                elif locatorColumn == "Link":
                     sql = """SELECT title, type, original_song, link, description,
                     location, minute, timestamp from original_song where link LIKE ?"""
-                elif locatorColumn == "Description": 
+                elif locatorColumn == "Description":
                     sql = """SELECT title, type, original_song, link, description,
                     location, minute, timestamp from original_song where description LIKE ?"""
 
@@ -353,7 +354,7 @@ class RecordIdeas(QWidget):
         self.clearForm()
         self.populateForm(title)
         self.slider.setValue(0)
-    
+
     def checkIdea(self, widget):
         text = widget.text()
         sql = "SELECT title from recorded_ideas where title = ?"
@@ -375,18 +376,18 @@ class RecordIdeas(QWidget):
         songName = self.titleEdit.text()
 
         if len(songName) > 0 and len(self.locationLine.text()) == 0:
-            self.recordDialog = QDialogPlus()   
+            self.recordDialog = QDialogPlus()
             self.recordDialog.setWindowTitle("Recording...")
             self.recordDialog.setModal(True)
             self.recordDialog.setWindowIcon(self.RECORD_ICON)
 
             layout = QHBoxLayout(self.recordDialog)
-            
+
             label = QLabel("<b>Recording...</b><br><br>press Space to stop.")
             layout.addWidget(label)
 
             self.recordingEnabled = True
-            
+
             self.recordDialog.signalSpacePressed.connect(self.stopRecording)
 
             self.recordThread = QThread()
@@ -404,7 +405,7 @@ class RecordIdeas(QWidget):
 
         if not os.path.isdir(recordFolder):
             os.mkdir(recordFolder)
-        
+
         speaker = sd.default_speaker()
         speakerLoopback = sd.get_microphone(speaker._id, include_loopback=True)
         arrays = []
@@ -420,7 +421,7 @@ class RecordIdeas(QWidget):
                         arrays.append(data)
                     else:
                         break
-            
+
             self.waveFormLabel.setText("Creating Waveform...")
             QCoreApplication.processEvents()
             dummyArray = numpy.array([[0, 0]])
@@ -428,7 +429,7 @@ class RecordIdeas(QWidget):
                 dummyArray = numpy.concatenate((dummyArray, array))
 
             data = numpy.array(dummyArray)
-            
+
             songName = self.titleEdit.text()
             fileName = os.path.join(recordFolder, songName + ".wav")
             if self.locationLine != None: self.locationLine.setText(fileName)
@@ -455,11 +456,11 @@ class RecordIdeas(QWidget):
             wafeFormPixmap = QPixmap(Waveform(self.recordedFile).save())
         else:
             available = False
-        if available: 
+        if available:
             self.waveFormLabel.setPixmap(wafeFormPixmap)
-        
+
         self.recordButton.setVisible(not available)
-        
+
         self.playlist = QMediaPlaylist()
         self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.recordedFile)))
         self.mediaPlayer.setPlaylist(self.playlist)
@@ -473,7 +474,7 @@ class RecordIdeas(QWidget):
             self.mediaPlayer.pause()
         else:
             self.mediaPlayer.play()
-    
+
     def mediaStateChanged(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
             self.playButton.setIcon(self.PAUSE_ICON)
@@ -516,7 +517,7 @@ class RecordIdeas(QWidget):
         self.recordingEnabled = False
         self.recordThread.terminate()
         self.recordDialog.hide()
-        
+
     def saveRecording(self):
         title = self.titleEdit.text()
         _type = self.typeComboBox.currentText()
@@ -532,10 +533,10 @@ class RecordIdeas(QWidget):
         minute, link, description, location]
 
         print(variables)
-        sql = """INSERT OR REPLACE into recorded_ideas 
+        sql = """INSERT OR REPLACE into recorded_ideas
         (title, type, timestamp, original_song, minute,
         link, description, location)
-                values 
+                values
         (?,      ?,       ?,         ?,      ?,
          ?,      ?,         ?)
 
@@ -544,16 +545,10 @@ class RecordIdeas(QWidget):
 
         queries(sql, variables)
         self.populateList()
-        
+
 
 if __name__ == '__main__':
     app = QApplication([])
     recordIdeas = RecordIdeas()
     #recordIdeas.show()
     app.exec()
-
-
-
-
-        
-

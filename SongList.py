@@ -1,15 +1,19 @@
-from PyQt5.QtWidgets import QDialog, QListWidget, QListWidgetItem, QDialog, QApplication,\
-     QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QMessageBox, QStackedWidget, QLineEdit,\
-     QWidget, QComboBox, QGridLayout, QCheckBox, QGroupBox, QTextEdit, QPushButton, QTimeEdit,\
-     QDateTimeEdit, QCompleter, QSlider, QFileDialog
-from PyQt5.QtGui import QFont, QPixmap, QIcon
-from PyQt5.QtCore import QTime, Qt, QDir, QUrl
-from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
-from datetime import datetime, timedelta
-from sqliteHandler import queries
-import numpy as np
 import os
+from datetime import datetime, timedelta
 from functools import partial
+
+import numpy as np
+
+from PyQt5.QtCore import QDir, Qt, QTime, QUrl
+from PyQt5.QtGui import QFont, QIcon, QPixmap
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
+from PyQt5.QtWidgets import (
+    QApplication, QCheckBox, QComboBox, QCompleter, QDateTimeEdit, QDialog,
+    QFileDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSizePolicy,
+    QSlider, QStackedWidget, QTextEdit, QTimeEdit, QVBoxLayout, QWidget)
+from sqliteHandler import queries
+
 
 class SongList(QWidget):
     def __init__(self, parent=None):
@@ -24,7 +28,7 @@ class SongList(QWidget):
 
         self.setupMediaPlayer()
         self.setupUi()
-    
+
     def setupMediaPlayer(self):
         self.mediaPlayer = QMediaPlayer()
 
@@ -69,7 +73,7 @@ class SongList(QWidget):
         self.songsListWidget.currentRowChanged.connect(self.changePage)
 
     def mainFormSetupUi(self):
-        
+
         """title, status style, duration, descriptin, location, project,
         variation_another_song, timestamp"""
 
@@ -87,12 +91,12 @@ class SongList(QWidget):
         horizontalLayout1.addWidget(titleLabel)
         horizontalLayout1.addWidget(self.titleEdit)
 
-        
+
         #Horizontal Layout 2
         horizontalLayout2 = QHBoxLayout()
         statusLabel = QLabel("Status:")
         self.statusBox = QComboBox()
-        
+
         dateLabel = QLabel("Date:")
         self.dateEdit = QDateTimeEdit()
         self.dateEdit.setCalendarPopup(True)
@@ -108,18 +112,18 @@ class SongList(QWidget):
         self.styleGroupBox = QGroupBox()
         self.styleGroupBox.setTitle("Style:")
         self.styleLayout = QGridLayout(self.styleGroupBox)
-        
+
         horizontalLayout3 = QHBoxLayout()
         durationLabel = QLabel("Duration:")
         self.durationLine = QTimeEdit()
         self.durationLine.setDisplayFormat("mm:ss")
-        
+
         projectLabel = QLabel("Project")
 
         self.projectComboBox = QComboBox()
         self.projectComboBox.setEditable(True)
-        
-        horizontalLayout3.addWidget(durationLabel)    
+
+        horizontalLayout3.addWidget(durationLabel)
         horizontalLayout3.addWidget(self.durationLine)
         horizontalLayout3.addWidget(projectLabel)
         horizontalLayout3.addWidget(self.projectComboBox)
@@ -128,7 +132,7 @@ class SongList(QWidget):
         descriptionLabel = QLabel("Description:")
         variationLabel = QLabel("Variation from another song: ")
         self.variationLine = QLineEdit()
-        
+
         horizontalLayout4.addWidget(descriptionLabel)
         horizontalLayout4.addStretch(1)
         horizontalLayout4.addWidget(variationLabel)
@@ -142,7 +146,7 @@ class SongList(QWidget):
         self.locationButton = QPushButton("...")
         self.locationButton.clicked.connect(self.locateFile)
 
-        
+
         horizontalLayout5.addWidget(locationLabel)
         horizontalLayout5.addWidget(self.locationLine)
         horizontalLayout5.addWidget(self.locationButton)
@@ -162,7 +166,7 @@ class SongList(QWidget):
 
         self.playButton.clicked.connect(self.playSong)
         self.stopButton.clicked.connect(self.stopSong)
-        
+
         horizontalLayout7.addStretch(1)
         horizontalLayout7.addWidget(self.playButton)
         horizontalLayout7.addWidget(self.stopButton)
@@ -173,7 +177,7 @@ class SongList(QWidget):
         self.saveButton = QPushButton()
         self.saveButton.setText("Save")
         self.saveButton.clicked.connect(self.saveSong)
-        
+
         horizontalLayout8.addStretch(1)
         horizontalLayout8.addWidget(self.saveButton)
 
@@ -214,7 +218,7 @@ class SongList(QWidget):
         if len(listArray) != 0:
             title = listArray[0][0]
             status = listArray[0][1]
-            
+
             styles = []
             styleArray = listArray[0][2]
             if styleArray != None:
@@ -247,7 +251,7 @@ class SongList(QWidget):
         else: self.dateEdit.setDateTime(datetime.now())#default
 
         styleArray = queries("select style from songs where style is not null")
-        
+
         """
         print(styleArray)
         if styleArray != None:
@@ -258,7 +262,7 @@ class SongList(QWidget):
                 styles.append(styleArray)"""
 
         stylesArray = []
-        
+
         query = queries("select style from songs where style is not null")
         if len(query) != 0:
             for style in query:
@@ -283,7 +287,7 @@ class SongList(QWidget):
         self.addStyle()
 
         if styles!= None:
-            if len(styles) != 0: 
+            if len(styles) != 0:
                 print("fukcing sytles", styles)
                 for style in styles:
                     for checkbox in self.styleGroupBox.children():
@@ -294,7 +298,7 @@ class SongList(QWidget):
         if duration != None:
                 time = QTime(0,0,0)
                 self.durationLine.setTime(time.addSecs(duration))
-        
+
         projectsArray = ["Select..."]
         projectsArrayQuery = queries("SELECT project from songs")
         if len(projectsArrayQuery) != 0:
@@ -305,9 +309,9 @@ class SongList(QWidget):
 
         if variation_another_song != None: self.variationLine.setText(variation_another_song)
         if description != None: self.descriptionTextEdit.setText(description)
-        
+
         available = False
-        if location != None: 
+        if location != None:
             self.locationLine.setText(location)
         if len(self.locationLine.text()) != 0:
             try:
@@ -326,18 +330,18 @@ class SongList(QWidget):
         print(locatorItem, locatorColumn)
         self.songsListWidget.blockSignals(True)
         self.songsListWidget.clear()
-        if locatorItem == None or locatorItem == "": 
+        if locatorItem == None or locatorItem == "":
             listArray = queries("""SELECT title, status, timestamp from songs """)
             print(listArray)
         else:
             if locatorColumn != "All": #No strings concatenation, no security holes
-                if locatorColumn == "Title": 
+                if locatorColumn == "Title":
                     sql = """SELECT title, status, timestamp from songs where title LIKE ?"""
-                elif locatorColumn == "Status": 
+                elif locatorColumn == "Status":
                     sql = """SELECT title, status, timestamp from songs where status LIKE ?"""
-                elif locatorColumn == "Description": 
+                elif locatorColumn == "Description":
                     sql = """SELECT title, status, timestamp from songs where description LIKE ?"""
-                elif locatorColumn == "Style": 
+                elif locatorColumn == "Style":
                     sql = """SELECT title, status, timestamp from songs where style LIKE ?"""
 
                 locatorItem = "%" + locatorItem + "%"
@@ -345,8 +349,8 @@ class SongList(QWidget):
             else:
                 locatorItem = "%" + locatorItem + "%"
                 variables = [locatorItem, locatorItem, locatorItem, locatorItem, locatorItem]
-                listArray = queries("""SELECT title, status, timestamp from songs 
-                where title LIKE ? OR type LIKE ? OR original_song LIKE ? OR link LIKE ? 
+                listArray = queries("""SELECT title, status, timestamp from songs
+                where title LIKE ? OR type LIKE ? OR original_song LIKE ? OR link LIKE ?
                 OR description LIKE ?""", variables)
         for item in listArray:
             title = item[0]
@@ -377,7 +381,7 @@ class SongList(QWidget):
     def checkBoxPositionAsignment(self):
             self.y += 1
             if self.y == 4:
-                self.y = 0 
+                self.y = 0
                 self.x += 1
     def addStyle(self, text=""):
         "text = "" if comes from outside"
@@ -403,13 +407,13 @@ class SongList(QWidget):
         sql = "SELECT title from songs where title = %s"
         if len(queries(sql, (text,))) != 0:
             widget.setText("")
-            
+
     def playSong(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
             self.mediaPlayer.pause()
         else:
             self.mediaPlayer.play()
-    
+
     def mediaStateChanged(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
             self.playButton.setIcon(self.PAUSE_ICON)
@@ -453,7 +457,7 @@ class SongList(QWidget):
         status = self.statusBox.currentText()
         date = self.dateEdit.text()
         style = ""
-        
+
         print(status, style)
         x = 0
         for checkBox in self.styleGroupBox.children():
@@ -477,11 +481,11 @@ class SongList(QWidget):
 
         print("---------", variables)
 
-        sql = """INSERT OR REPLACE into songs 
+        sql = """INSERT OR REPLACE into songs
         (title, status, description, location, project,
         variation_another_song, timestamp, style, duration)
 
-        values 
+        values
         (?,      ?,       ?,          ?,     ?,
          ?,                     ?,         ?,      ?)"""
 
@@ -495,9 +499,3 @@ if __name__ == '__main__':
     songList = SongList()
     songList.show()
     app.exec()
-
-
-
-        
-        
-
