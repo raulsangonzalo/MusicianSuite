@@ -1,22 +1,6 @@
-import psycopg2
 from PySide2.QtCore import QEvent, Qt, Signal
 from PySide2.QtWidgets import QDialog
 
-
-def queries(sqlstr, variables=''):
-    conn = psycopg2.connect("dbname='Raul' user='postgres' host='127.0.0.1' password='R'")
-    cur = conn.cursor()
-    if variables == '': cur.execute(sqlstr)
-    else:
-        cur.execute(sqlstr, (variables))
-    try:
-        items_available = cur.fetchall()
-    except:
-        items_available = None
-    conn.commit()
-    cur.close()
-    conn.close()
-    return items_available
 
 class QDialogPlus(QDialog):
     signalSpacePressed = Signal(str)
