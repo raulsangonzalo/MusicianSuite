@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from functools import partial
 from pathlib import Path
+import platform
 
 import numpy
 import soundcard as sd
@@ -337,7 +338,7 @@ class RecordIdeas(QWidget):
                 timestamp = timestamp.strftime("%d/%m/%Y")
             except:
                 timestamp = ""
-
+            print("end")
             text = "%s %s %s" % (title, _type, timestamp)
             qItem = QListWidgetItem(text)
             qItem.setData(Qt.UserRole, title)
@@ -346,6 +347,7 @@ class RecordIdeas(QWidget):
         qItem = QListWidgetItem("New song...")
         qItem.setData(Qt.UserRole, "New song...") #otherwise that would be an error
         self.recordedIdeasListWidget.addItem(qItem)
+        print("end")
         self.recordedIdeasListWidget.blockSignals(False)
     def changePage(self, index):
         title = self.recordedIdeasListWidget.item(index).data(Qt.UserRole)
@@ -399,7 +401,17 @@ class RecordIdeas(QWidget):
             os.mkdir(recordFolder)
 
         speaker = sd.default_speaker()
-        speakerLoopback = sd.get_microphone(speaker._id, include_loopback=True)
+        print(speaker)
+        print(sd.all_microphones())
+        if platform.system() == 'Darwin':
+            try:
+                speakerLoopback = sd.get_microphone('Soundflower')
+    
+            except:
+                QMessageBox.information(None, 'Error', 'You must install Soundflower to be able to record')
+                self.recordingEnabled = False
+        else:
+            speakerLoopback = sd.get_microphone(speaker._id, include_loopback=True)
         arrays = []
 
         data = None
@@ -439,34 +451,37 @@ class RecordIdeas(QWidget):
                 self.waveFormPicture = Waveform(fileName).save()
                 self.waveFormAvailable()
 
-            return True
+        return True
     def waveFormAvailable(self):
         #TODO access both ways
-
+        print("waveform")
         available = True
 
-        self.recordedFile = os.getcwd()
-        self.recordedFile = os.path.join(self.recordedFile, "recordings")
-        self.recordedFile = os.path.join(self.recordedFile, self.titleEdit.text()) #TODO CHANGE TO LOCATION
-        self.recordedFile = self.recordedFile + '.wav'
-        #self.recordedFile = self.locationLine.text()
-        if os.path.exists(self.recordedFile):
-            file = wavio.read(self.recordedFile)
-            wafeFormPixmap = QPixmap(Waveform(self.recordedFile).save())
-        else:
-            available = False
-        if available:
-            self.waveFormLabel.setPixmap(wafeFormPixmap)
+        try:
+            self.recordedFile = os.getcwd()
+            self.recordedFile = os.path.join(self.recordedFile, "recordings")
+            self.recordedFile = os.path.join(self.recordedFile, self.titleEdit.text()) #TODO CHANGE TO LOCATION
+            self.recordedFile = self.recordedFile + '.wav'
+            #self.recordedFile = self.locationLine.text()
+            if os.path.exists(self.recordedFile):
+                file = wavio.read(self.recordedFile)
+                wafeFormPixmap = QPixmap(Waveform(self.recordedFile).save())
+            else:
+                available = False
+            if available:
+                self.waveFormLabel.setPixmap(wafeFormPixmap)
 
-        self.recordButton.setVisible(not available)
+            self.recordButton.setVisible(not available)
 
-        self.playlist = QMediaPlaylist()
-        self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.recordedFile)))
-        self.mediaPlayer.setPlaylist(self.playlist)
+            self.playlist = QMediaPlaylist()
+            self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.recordedFile)))
+            self.mediaPlayer.setPlaylist(self.playlist)
 
-        self.slider.setVisible(available)
-        self.playButton.setVisible(available)
-        self.stopButton.setVisible(available)
+            self.slider.setVisible(available)
+            self.playButton.setVisible(available)
+            self.stopButton.setVisible(available)
+        except:
+            pass
 
     def playSong(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
@@ -545,5 +560,6 @@ class RecordIdeas(QWidget):
 if __name__ == '__main__':
     app = QApplication([])
     recordIdeas = RecordIdeas()
-    #recordIdeas.show()
+    recordIdeas.show()
+##    recordIdeas.record()
     app.exec()
