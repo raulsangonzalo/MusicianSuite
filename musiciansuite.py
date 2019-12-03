@@ -67,9 +67,8 @@ class MusicianSuite(QApplication):
 
     def init(self):
         """True initiation of the App, if only one instance"""
-        self.mainWindow = MusicMainWindow()
-
         createTables()
+        self.mainWindow = MusicMainWindow()
         resourcesPath = os.getcwd()
         resourcesPath = os.path.join(resourcesPath, "resources")
         if not os.path.exists(resourcesPath):
