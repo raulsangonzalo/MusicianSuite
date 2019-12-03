@@ -4,12 +4,12 @@ import time
 
 import numpy
 import soundcard as sd
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap, QKeySequence
-from PyQt5.QtWidgets import (
-    QAction, QApplication, QHBoxLayout, QMainWindow, QStackedWidget,
-    QSystemTrayIcon, QToolBar, QWidget, QShortcut)
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QKeySequence, QPixmap
+from PyQt5.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
+                             QShortcut, QStackedWidget, QSystemTrayIcon,
+                             QToolBar, QWidget)
 from recordideas import RecordIdeas
 from songlist import SongList
 from sqliteHandler import createTables
@@ -26,6 +26,7 @@ class MusicMainWindow(QMainWindow):
         self.MAIN_ICON = QIcon(os.path.join(resourcesPath, "test.ico"))
         self.ICON0 = QIcon(QPixmap(os.path.join(resourcesPath, "icon0.png")))
         self.ICON1 = QIcon(QPixmap(os.path.join(resourcesPath, "icon1.png")))
+        self.setWindowIcon(self.MAIN_ICON)
 
         self.songList = SongList()
         self.recordIdeas = RecordIdeas()
