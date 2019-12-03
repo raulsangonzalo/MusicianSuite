@@ -99,7 +99,7 @@ class MusicianSuite(QApplication):
         
         self.trayIcon.show()
 
-        self.trayIcon.activated.connect(self.startRecordingHook)
+        self.trayIcon.activated.connect(self.iconDoubleClickMain)
         self.trayIconMenu.triggered.connect(self.messagePopup)
         
         self.mainWindow.stackedWidget.setCurrentIndex(0)
@@ -107,7 +107,7 @@ class MusicianSuite(QApplication):
         self.mainWindow.show()
     def iconDoubleClickMain(self, reason):
         if reason == QSystemTrayIcon.DoubleClick:  
-            self.messagePopup(self.songList)
+            self.startRecordingHook()
     def messagePopup(self, action):
         """Pressing the menu and toast """
         if action == self.songListAction:
