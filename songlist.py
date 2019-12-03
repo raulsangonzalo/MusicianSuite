@@ -3,17 +3,15 @@ from datetime import datetime, timedelta
 from functools import partial
 
 import numpy as np
+
 from PyQt5.QtCore import QDir, Qt, QTime, QUrl
 from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QCompleter,
-                               QDateTimeEdit, QDialog, QFileDialog,
-                               QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                               QLineEdit, QListWidget, QListWidgetItem,
-                               QMessageBox, QPushButton, QSizePolicy, QSlider,
-                               QStackedWidget, QTextEdit, QTimeEdit,
-                               QVBoxLayout, QWidget)
-
+from PyQt5.QtWidgets import (
+    QApplication, QCheckBox, QComboBox, QCompleter, QDateTimeEdit, QDialog,
+    QFileDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSizePolicy,
+    QSlider, QStackedWidget, QTextEdit, QTimeEdit, QVBoxLayout, QWidget)
 from sqliteHandler import queries
 
 
@@ -87,8 +85,8 @@ class SongList(QWidget):
         titleLabel = QLabel("Song name:")
         self.titleEdit = QLineEdit()
 
-        #self.titleEdit.editingFinished.connect(partial(self.checkIdea, self.titleEdit))
-        #self.titleEdit.textChanged.connect(partial(self.validateIdea, self.titleEdit))
+        self.titleEdit.editingFinished.connect(self.checkSong)
+        self.titleEdit.textChanged.connect(self.validateSong)
 
         horizontalLayout1.addWidget(titleLabel)
         horizontalLayout1.addWidget(self.titleEdit)
@@ -224,8 +222,8 @@ class SongList(QWidget):
             styles = []
             styleArray = listArray[0][2]
             if styleArray != None:
-                if ",,," in styleArray:
-                    styles = styleArray.split(",,,")
+                if "," in styleArray:
+                    styles = styleArray.split(",")
                 else:
                     styles.append(styleArray)
             duration = listArray[0][3]
@@ -258,8 +256,8 @@ class SongList(QWidget):
         print(styleArray)
         if styleArray != None:
             styleArray = styleArray[0][0]
-            if ",,," in styleArray:
-                styles = styleArray.split(",,,")
+            if "," in styleArray:
+                styles = styleArray.split(",")
             else:
                 styles.append(styleArray)"""
 
@@ -268,7 +266,7 @@ class SongList(QWidget):
         query = queries("select style from songs where style is not null")
         if len(query) != 0:
             for style in query:
-                stylesMiniArray = style[0].split(",,,")
+                stylesMiniArray = style[0].split(",")
                 stylesMiniArray = list(filter(None, stylesMiniArray))
                 for item in stylesMiniArray:
                     if item not in stylesArray:
@@ -385,9 +383,10 @@ class SongList(QWidget):
     def addStyle(self, text=""):
         "text = "" if comes from outside"
 
-        styleEdit = QLineEdit()
-        styleEdit.setPlaceholderText("Style")
-        styleEdit.returnPressed.connect(lambda:self.addStyle(styleEdit.text()))
+        self.styleEdit = QLineEdit()
+        self.styleEdit.setPlaceholderText("Style")
+        self.styleEdit.textChanged.connect(self.validateStyle)
+        self.styleEdit.returnPressed.connect(lambda:self.addStyle(styleEdit.text()))
 
         if text != "":
             self.styleLayout.takeAt(self.styleLayout.count()-1).widget().deleteLater()
@@ -398,7 +397,7 @@ class SongList(QWidget):
             self.styleLayout.addWidget(styleCheckBox, self.x, self.y)
             self.checkBoxPositionAsignment()
             print(self.durationLine.text())
-        self.styleLayout.addWidget(styleEdit)
+        self.styleLayout.addWidget(self.styleEdit)
 
 
     def checkSong(self):
@@ -406,6 +405,13 @@ class SongList(QWidget):
         sql = "SELECT title from songs where title = %s"
         if len(queries(sql, (text,))) != 0:
             self.titleEdit.setText("")
+    def validateSong(self):
+        pass
+        #VALIDATE REG EXP
+
+    def validateStyle(self, text):
+        if "," in text:
+            self.styleEdit.undo()
 
     def playSong(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
@@ -459,9 +465,9 @@ class SongList(QWidget):
         for checkBox in self.styleGroupBox.children():
             if isinstance(checkBox, QCheckBox):
                 if checkBox.isChecked():
-                    style += (checkBox.text()) + ",,,"
+                    style += (checkBox.text()) + ","
                     x+=1
-        if x != 0: style = style.rstrip(",,,")
+        if x != 0: style = style.rstrip(",")
         else: style = None
 
         duration = self.durationLine.time()
