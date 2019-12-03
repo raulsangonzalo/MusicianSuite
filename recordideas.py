@@ -9,19 +9,17 @@ from pathlib import Path
 import numpy
 import soundcard as sd
 import wavio
+
+from custom import QDialogPlus
 from PyQt5.QtCore import QCoreApplication, QSize, Qt, QThread, QTime, QUrl
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
-                               QDateTimeEdit, QDialog, QFileDialog,
-                               QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                               QLineEdit, QListWidget, QListWidgetItem,
-                               QMessageBox, QPushButton, QSizePolicy, QSlider,
-                               QSplitter, QStackedWidget, QStyle, QTextEdit,
-                               QTimeEdit, QToolButton, QVBoxLayout, QWidget,
-                               QInputDialog)
-
-from custom import QDialogPlus
+from PyQt5.QtWidgets import (
+    QApplication, QCheckBox, QComboBox, QDateTimeEdit, QDialog, QFileDialog,
+    QGridLayout, QGroupBox, QHBoxLayout, QInputDialog, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSizePolicy,
+    QSlider, QSplitter, QStackedWidget, QStyle, QTextEdit, QTimeEdit,
+    QToolButton, QVBoxLayout, QWidget)
 from sqliteHandler import createTables, queries
 from waveform import Waveform
 
@@ -397,6 +395,8 @@ class RecordIdeas(QWidget):
     def startRecording(self):
         recordFolder = os.getcwd()
         recordFolder = os.path.join(recordFolder, "recordings")
+        if not os.path.exists(recordFolder):
+            os.mkdir(recordFolder)
 
         speaker = sd.default_speaker()
         speakerLoopback = sd.get_microphone(speaker._id, include_loopback=True)
