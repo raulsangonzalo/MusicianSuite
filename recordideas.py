@@ -415,42 +415,47 @@ class RecordIdeas(QWidget):
         arrays = []
 
         data = None
-        while self.recordingEnabled:
-            with speakerLoopback.recorder(samplerate=44100, channels=2) as mic:
-                for _ in range(1000000):
-                    if self.recordingEnabled:
-                        QCoreApplication.processEvents()
-                        data = mic.record(numframes=1024)#, samplerate=44100, channels=2)
-                        arrays.append(data)
-                    else:
-                        break
+        try:
+            while self.recordingEnabled:
+                with speakerLoopback.recorder(samplerate=44100, channels=2) as mic:
+                    for _ in range(1000000):
+                        if self.recordingEnabled:
+                            QCoreApplication.processEvents()
+                            data = mic.record(numframes=1024)#, samplerate=44100, channels=2)
+                            arrays.append(data)
+                        else:
+                            break
 
-            self.waveFormLabel.setText("Creating Waveform...")
-            QCoreApplication.processEvents()
-            dummyArray = numpy.array([[0, 0]])
-            for array in arrays:
-                dummyArray = numpy.concatenate((dummyArray, array))
+                self.waveFormLabel.setText("Creating Waveform...")
+                QCoreApplication.processEvents()
+                dummyArray = numpy.array([[0, 0]])
+                for array in arrays:
+                    dummyArray = numpy.concatenate((dummyArray, array))
 
-            data = numpy.array(dummyArray)
+                data = numpy.array(dummyArray)
 
 
-            if len(self.titleEdit.text()) == 0: #text is split in advance
-                songName, ok = QInputDialog.getText(self, 'Idea Input Dialog', 'Enter a name for the idea:')
-                if ok:
-                    #need validation with existing
-                    self.titleEdit.setText(songName)
-            else:
-                songName = self.titleEdit.text()
-            if len(songName) > 0:
-                print("not yet")
-                fileName = os.path.join(recordFolder, songName + ".wav")
-                if self.locationLine != None: self.locationLine.setText(fileName)
+                if len(self.titleEdit.text()) == 0: #text is split in advance
+                    songName, ok = QInputDialog.getText(self, 'Idea Input Dialog', 'Enter a name for the idea:')
+                    if ok:
+                        #need validation with existing
+                        self.titleEdit.setText(songName)
+                else:
+                    songName = self.titleEdit.text()
+                if len(songName) > 0:
+                    print("not yet")
+                    fileName = os.path.join(recordFolder, songName + ".wav")
+                    if self.locationLine != None: self.locationLine.setText(fileName)
 
-                wavio.write(fileName, data, 44100, sampwidth=2)
+                    wavio.write(fileName, data, 44100, sampwidth=2)
 
-                self.waveFormPicture = Waveform(fileName).save()
-                self.waveFormAvailable()
-
+                    self.waveFormPicture = Waveform(fileName).save()
+                    self.waveFormAvailable()
+        except Exception as e:
+            text = "Error encountered: \n\n %s" % e
+            if platform.system() == 'Darwin':
+                text = text + "\n\n Make sure Soundflower is set up correctly."
+            QMessageBox.information(None, "Error", text)
         return True
     def waveFormAvailable(self):
         #TODO access both ways
