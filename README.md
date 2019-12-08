@@ -11,7 +11,7 @@ https://drive.google.com/open?id=1u4sMoifdaz2PNbwI4TcXsK-IB0kt0-av
 >You need to install Soundflower to make use of the recording function!
 
 ## Python 3 dependencies needed:
-
+In case you want to execute it through Python:
 - PyQt5
 - soundcard
 - numpy
