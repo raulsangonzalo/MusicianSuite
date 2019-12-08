@@ -1,0 +1,8 @@
+#TO DOs
+
+- Refactor the whole code. Apply conventions correctly.
+- Make the code translatable (e.g. not use actions text as switch).
+- Make own icons.
+- Composition Analysis (3rd Tab).
+- Settings.
+- UI problems: widget sizes.
