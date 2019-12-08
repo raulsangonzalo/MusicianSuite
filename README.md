@@ -1,5 +1,5 @@
 # MusicianSuite
->A suite of functions for the average musician. Current version 0.1 beta. Tested in Windows 10 64 bits and Mac OS X Sierra.
+>A suite of functions for the average musician. Current version 0.1 beta. Tested in Windows 10 64 and Mac OS X Sierra 10.12 64.
 
 ## Executables
 
