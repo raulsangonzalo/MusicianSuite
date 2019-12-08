@@ -6,3 +6,4 @@
 - Composition Analysis (3rd Tab).
 - Settings.
 - UI problems: widget sizes.
+- Compile correctly for Mac
