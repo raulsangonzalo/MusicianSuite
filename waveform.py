@@ -1,6 +1,4 @@
-# Requires pydub (with ffmpeg) and Pillow
-#
-# Usage: python waveform.py <audio_file>
+# Code borrowed https://github.com/niland/wav2image
 
 import sys
 
