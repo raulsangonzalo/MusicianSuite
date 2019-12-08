@@ -20,6 +20,7 @@ class SongList(QWidget):
     def __init__(self, parent=None):
         super(SongList, self).__init__(parent)
 
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         resourcesPath = os.getcwd()
         resourcesPath = os.path.join(resourcesPath, "resources")
 

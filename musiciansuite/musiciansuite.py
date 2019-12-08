@@ -86,6 +86,8 @@ class MusicianSuite(QApplication):
             else:
                 self.mainWindow = MusicMainWindow()
 
+                # mac madness
+                os.chdir(os.path.dirname(os.path.abspath(__file__)))
                 resourcesPath = os.getcwd()
                 resourcesPath = os.path.join(resourcesPath, "resources")
                 if not os.path.exists(resourcesPath):

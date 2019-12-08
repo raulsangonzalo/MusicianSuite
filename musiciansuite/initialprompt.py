@@ -19,6 +19,7 @@ class InitialPrompt(QDialog):
     def init(self):
         self._settings = QSettings("Raul Sangonzalo", "Musician Suite")
 
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         resourcesPath = os.getcwd()
         resourcesPath = os.path.join(resourcesPath, "resources")
         self.MAIN_ICON = QIcon(os.path.join(resourcesPath, "test.ico"))

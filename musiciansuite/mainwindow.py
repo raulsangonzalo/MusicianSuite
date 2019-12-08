@@ -23,8 +23,11 @@ class MusicMainWindow(QMainWindow):
         self._settings = QSettings("Raul Sangonzalo", "Musician Suite")
         self.setWindowTitle("Musician Suite")
 
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         resourcesPath = os.getcwd()
+        print(resourcesPath)
         resourcesPath = os.path.join(resourcesPath, "resources")
+        print(resourcesPath)
 
         self.MAIN_ICON = QIcon(os.path.join(resourcesPath, "test.ico"))
         self.ICON0 = QIcon(QPixmap(os.path.join(resourcesPath, "icon0.png")))

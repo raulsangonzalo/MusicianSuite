@@ -31,6 +31,7 @@ class RecordIdeas(QWidget):
         createTables()
         startTime = time.time()
 
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         resourcesPath = os.getcwd()
         resourcesPath = os.path.join(resourcesPath, "resources")
 
@@ -418,6 +419,7 @@ class RecordIdeas(QWidget):
         self.recordDialog.show()
 
     def startRecording(self):
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         recordFolder = os.getcwd()
         recordFolder = os.path.join(recordFolder, "recordings")
         if not os.path.exists(recordFolder):
@@ -486,6 +488,7 @@ class RecordIdeas(QWidget):
         available = True
 
         try:
+            os.chdir(os.path.dirname(os.path.abspath(__file__)))
             self.recordedFile = os.getcwd()
             self.recordedFile = os.path.join(self.recordedFile, "recordings")
             self.recordedFile = os.path.join(self.recordedFile, self.titleEdit.text()) #TODO CHANGE TO LOCATION
