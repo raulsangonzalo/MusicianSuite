@@ -1,5 +1,4 @@
 # MusicianSuite
-![Test Image 1](Capture1.PNG)
 >A suite of functions for the average musician. Current version 0.1 beta. Tested in Windows 10 64 and Mac OS X Sierra 10.12 64.
 
 ## Executables
@@ -28,3 +27,8 @@ python musiciansuite.py
 
 ## Disclaimer
 This project started as an idea because I felt the need to organize my own music and I couldn't find any existing app for this purpose. Having said that, I am a self-taught programmer with less than two years of experience, which means some codes need refactoring and use of conventions. That hasn't stopped me, however, to write this simple but effective app. It will become more stable with time if you are patient. Any errors, don't hesitate to open a discussion or to contact me at raulsangonzalo@gmail.com. I hope you enjoy it!
+
+## Screenshots:
+<p align="center"><img src=Capture1.PNG></p>
+
+![Test Image 1](Capture2.PNG)
