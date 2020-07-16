@@ -10,7 +10,7 @@ Mac OS (Compiled in 10.12 Sierra)
 https://drive.google.com/open?id=1u4sMoifdaz2PNbwI4TcXsK-IB0kt0-av
 >You need to install Soundflower to make use of the recording function!
 
-Recording function is set up with 44.1kHz sample rate (you might have to change your settings if your default device runs in a different sample rate.
+Recording function is set up with 44.1kHz sample rate (you might have to change your settings if your default device runs in a different sample rate).
 ## Python 3 dependencies needed:
 In case you want to execute it through Python:
 - PyQt5
